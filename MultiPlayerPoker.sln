@@ -9,6 +9,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MultiPlayerPoker.Cards", "M
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MultiPlayerPoker.Cards.Test", "MultiPlayerPoker.Cards.Test\MultiPlayerPoker.Cards.Test.csproj", "{ED3D284E-DF34-43C1-B79D-A8F9BCA64EF2}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MultiPlayerPoker.Cards.DeckView", "MultiPlayerPoker.Cards.DeckView\MultiPlayerPoker.Cards.DeckView.csproj", "{2ECBA702-1814-46CE-9589-53E51D296540}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{ED3D284E-DF34-43C1-B79D-A8F9BCA64EF2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{ED3D284E-DF34-43C1-B79D-A8F9BCA64EF2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{ED3D284E-DF34-43C1-B79D-A8F9BCA64EF2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2ECBA702-1814-46CE-9589-53E51D296540}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2ECBA702-1814-46CE-9589-53E51D296540}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2ECBA702-1814-46CE-9589-53E51D296540}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2ECBA702-1814-46CE-9589-53E51D296540}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

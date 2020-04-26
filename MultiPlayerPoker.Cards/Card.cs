@@ -39,5 +39,51 @@ namespace MultiPlayerPoker.Cards
         throw new ArgumentException($"Value {value} does not correspond to a valid rank.", nameof(value), ex);
       }
     }
+
+    public override string ToString()
+    {
+      string rankName;
+      switch (Rank)
+      {
+        case ("A"):
+          rankName = "Ace";
+          break;
+        case ("K"):
+          rankName = "King";
+          break;
+        case ("Q"):
+          rankName = "Queen";
+          break;
+        case ("J"):
+          rankName = "Jack";
+          break;
+        default:
+          rankName = Rank;
+          break;
+      }
+
+      string suitName;
+      switch (Suit)
+      {
+        case ("H"):
+          suitName = "Hearts";
+          break;
+        case ("D"):
+          suitName = "Diamonds";
+          break;
+        case ("C"):
+          suitName = "Clubs";
+          break;
+        case ("S"):
+          suitName = "Spades";
+          break;
+        default:
+          suitName = "INVALID_SUIT";
+          break;
+      }
+
+      return ($"{rankName} of {suitName}");
+     
+    }
   }
 }
