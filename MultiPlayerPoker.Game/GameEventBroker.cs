@@ -11,28 +11,25 @@ namespace MultiPlayerPoker.Game
     public event EventHandler<GameEventArgs> GameReady;
     public event EventHandler<GameEventArgs> TableReady;
 
-    public event EventHandler<GameEventArgs> TrySeatPlayer;
     public event EventHandler<GameEventArgs> PlayerWasSeated;
     public event EventHandler<GameErrorEventArgs> FailSeatPlayer;
     
     public event EventHandler<GameEventArgs> PlayerLeft;
+    public event EventHandler<GameErrorEventArgs> FailPlayerLeft;
 
-    public event EventHandler<GameEventArgs> TryPausePlayer;
     public event EventHandler<GameEventArgs> PlayerWasPaused;
     public event EventHandler<GameErrorEventArgs> FailPausePlayer;
 
-    public event EventHandler<GameEventArgs> TryUnpausePlayer;
     public event EventHandler<GameEventArgs> PlayerWasUnpaused;
     public event EventHandler<GameErrorEventArgs> FailUnpausePlayer;
 
-    public event EventHandler<GameEventArgs> TryPlayerBet;
     public event EventHandler<GameEventArgs> PlayerDidBet;
     public event EventHandler<GameErrorEventArgs> FailPlayerBet;
 
-    public event EventHandler<GameEventArgs> TryPlayerFold;
     public event EventHandler<GameEventArgs> PlayerDidFold;
     public event EventHandler<GameErrorEventArgs> FailPlayerFold;
 
+    public event EventHandler<GameEventArgs> ActionOnPlayer;
     public event EventHandler<GameEventArgs> BettingCompleted;
     public event EventHandler<GameEventArgs> ReadyForNewHand;
     public event EventHandler<GameEventArgs> PlayerWonMoney;
@@ -68,6 +65,12 @@ namespace MultiPlayerPoker.Game
       PublishGameEvent(handler);
     }
 
+    public void SendActionOnPlayer(Player player)
+    {
+      var handler = ActionOnPlayer;
+      PublishGameEvent(handler, player);
+    }
+
     public void SendBettingCompleted()
     {
       var handler = BettingCompleted;
@@ -80,22 +83,16 @@ namespace MultiPlayerPoker.Game
       PublishGameEvent(handler);
     }
 
-    public void SendTrySeatPlayer(Player player)
-    {
-      var handler = TrySeatPlayer;
-      PublishGameEvent(handler, player);
-    }
-
     public void SendPlayerWasSeated(Player player)
     {
       var handler = PlayerWasSeated;
       PublishGameEvent(handler, player);
     }
 
-    public void SendFailSeatPlayer(Player player, string message)
+    public void SendFailSeatPlayer(string message, Player player, Exception ex = null)
     {
       var handler = FailSeatPlayer;
-      PublishGameError(handler, message, player);
+      PublishGameError(handler, message, player, ex);
     }
 
     public void SendPlayerLeft(Player player)
@@ -104,10 +101,34 @@ namespace MultiPlayerPoker.Game
       PublishGameEvent(handler, player);
     }
 
-    public void SendTryPlayerBet(Player player, int amount)
+    public void SendFailPlayerLeft(string message, Player player, Exception ex = null)
     {
-      var handler = TryPlayerBet;
-      PublishGameEvent(handler, player, amount);
+      var handler = FailPlayerLeft;
+      PublishGameError(handler, message, player, ex);
+    }
+
+    public void SendPlayerWasPaused(Player player)
+    {
+      var handler = PlayerWasPaused;
+      PublishGameEvent(handler, player);
+    }
+
+    public void SendFailPausePlayer(string message, Player player, Exception ex = null)
+    {
+      var handler = FailPausePlayer;
+      PublishGameError(handler, message, player, ex);
+    }
+
+    public void SendPlayerWasUnpaused(Player player)
+    {
+      var handler = PlayerWasUnpaused;
+      PublishGameEvent(handler, player);
+    }
+
+    public void SendFailUnpausePlayer(string message, Player player, Exception ex = null)
+    {
+      var handler = FailUnpausePlayer;
+      PublishGameError(handler, message, player, ex);
     }
 
     public void SendPlayerDidBet(Player player, int amount)
@@ -120,12 +141,6 @@ namespace MultiPlayerPoker.Game
     {
       var handler = FailPlayerBet;
       PublishGameError(handler, message, player);
-    }
-
-    public void SendTryPlayerFold(Player player)
-    {
-      var handler = TryPlayerFold;
-      PublishGameEvent(handler, player);
     }
 
     public void SendPlayerDidFold(Player player)

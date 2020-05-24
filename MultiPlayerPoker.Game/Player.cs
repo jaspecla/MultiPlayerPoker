@@ -2,6 +2,7 @@
 using Stateless;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace MultiPlayerPoker.Game
@@ -38,6 +39,9 @@ namespace MultiPlayerPoker.Game
 
     private readonly StateMachine<State, Trigger>.TriggerWithParameters<int> _betTrigger;
 
+    private readonly GameEventBroker _eventBroker;
+    private readonly GameActions _actions;
+
     public string Id { get; set; }
     public string DisplayName { get; set; }
     public Card[] HoleCards { get; set; }
@@ -46,9 +50,22 @@ namespace MultiPlayerPoker.Game
     public int Bankroll { get; set; }
     public int BuyIn { get; set; }
 
-    public Player()
+    public Player(GameEventBroker eventBroker, GameActions actions)
     {
       HoleCards = new Card[2];
+
+      _eventBroker = eventBroker;
+      _eventBroker.PlayerWasSeated += OnPlayerSeated;
+      _eventBroker.PlayerLeft += OnPlayerLeft;
+      _eventBroker.ActionOnPlayer += OnActionOnPlayer;
+      _eventBroker.PlayerCardDealt += OnPlayerDealtCard;
+
+      _actions = actions;
+
+      _actions.TryPausePlayerDelegate += OnTryPausePlayer;
+      _actions.TryUnpausePlayerDelegate += OnTryUnpausePlayer;
+      _actions.TryPlayerBetDelegate += OnTryPlayerBet;
+      _actions.TryPlayerFoldDelegate += OnTryPlayerFold;
 
       _playerStateMachine = new StateMachine<State, Trigger>(State.NotInGame);
 
@@ -71,7 +88,7 @@ namespace MultiPlayerPoker.Game
       _playerStateMachine.Configure(State.Action)
         .PermitDynamic(_betTrigger, bet =>
         {
-          if (bet == ChipStack)
+          if (ChipStack == 0)
           {
             return State.AllIn;
           }
@@ -89,14 +106,123 @@ namespace MultiPlayerPoker.Game
 
     }
 
-    public void Seat()
+    private void OnPlayerSeated(object sender, GameEventArgs args)
     {
+      if (args.Player != this)
+      {
+        return;
+      }
+
+      Bankroll -= BuyIn;
+      ChipStack = BuyIn;
+
       _playerStateMachine.Fire(Trigger.SeatedAtTable);
     }
 
-    public void RemoveFromGame()
+    private void OnPlayerLeft(object sender, GameEventArgs args)
     {
+      if (args.Player != this)
+      {
+        return;
+      }
+
       _playerStateMachine.Fire(Trigger.LeaveTable);
+    }
+
+    private void OnTryPausePlayer(Player player)
+    {
+      if (player != this)
+      {
+        return;
+      }
+
+      if (!_playerStateMachine.CanFire(Trigger.SitOut))
+      {
+        _eventBroker.SendFailPausePlayer("Player cannot currently sit out the game.", player);
+        return;
+      }
+
+      _playerStateMachine.Fire(Trigger.SitOut);
+      _eventBroker.SendPlayerWasPaused(player);
+
+    }
+
+    private void OnTryUnpausePlayer(Player player) {
+      if (player != this)
+      {
+        return;
+      }
+
+      if (!_playerStateMachine.CanFire(Trigger.SitIn))
+      {
+        _eventBroker.SendFailUnpausePlayer("Player cannot currently return to the game.", player);
+        return;
+      }
+
+      _playerStateMachine.Fire(Trigger.SitIn);
+      _eventBroker.SendPlayerWasUnpaused(player);
+    }
+
+    private void OnTryPlayerBet(Player player, int amount)
+    {
+      if (player != this)
+      {
+        return;
+      }
+
+      if (!_playerStateMachine.IsInState(State.Action))
+      {
+        _eventBroker.SendFailPlayerBet($"Player {player.DisplayName} tried to bet, but the action was not on them.", player);
+        return;
+      }
+
+      if (amount > ChipStack)
+      {
+        _eventBroker.SendFailPlayerBet($"Player {player.DisplayName} tried to bet {amount} but they only have {ChipStack} in their stack.", player);
+        return;
+      }
+
+      ChipStack -= amount;
+      _playerStateMachine.Fire(_betTrigger, amount);
+      _eventBroker.SendPlayerDidBet(player, amount);
+
+    }
+
+    private void OnTryPlayerFold(Player player)
+    {
+      if (player != this)
+      {
+        return;
+      }
+
+      if (!_playerStateMachine.IsInState(State.Action))
+      {
+        _eventBroker.SendFailPlayerBet($"Player {player.DisplayName} tried to fold, but the action was not on them.", player);
+        return;
+      }
+
+      _playerStateMachine.Fire(Trigger.Fold);
+      _eventBroker.SendPlayerDidFold(player);
+    }
+
+    private void OnActionOnPlayer(object sender, GameEventArgs args)
+    {
+      if (args.Player != this)
+      {
+        return;
+      }
+
+      _playerStateMachine.Fire(Trigger.ActionOn);
+    }
+
+    private void OnPlayerDealtCard(object sender, GameEventArgs args)
+    {
+      if (args.Player != this)
+      {
+        return;
+      }
+
+      this.HoleCards.Append(args.Cards[0]);
     }
 
     public bool IsInHand()
@@ -104,14 +230,9 @@ namespace MultiPlayerPoker.Game
       return _playerStateMachine.IsInState(State.InHand) || _playerStateMachine.IsInState(State.Action);
     }
 
-    public void Bet(int amount)
+    public bool IsInGame()
     {
-      _playerStateMachine.Fire(_betTrigger, amount);
-    }
-
-    public void Fold()
-    {
-      _playerStateMachine.Fire(Trigger.Fold);
+      return !_playerStateMachine.IsInState(State.NotInGame);
     }
   }
 }

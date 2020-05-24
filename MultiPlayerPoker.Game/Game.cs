@@ -48,45 +48,31 @@ namespace MultiPlayerPoker.Game
       _gameState = new GameState();
 
       _eventBroker = eventBroker;
-      _eventBroker.PlayerSeated += SeatPlayer;
-
-      _betTrigger = _gameStateMachine.SetTriggerParameters<Player, int>(Trigger.PlayerBet);
-      _foldTrigger = _gameStateMachine.SetTriggerParameters<Player>(Trigger.PlayerFold);
+      _eventBroker.TableReady += OnTableReady;
+      _eventBroker.BettingCompleted += OnBettingComplete;
 
       _gameStateMachine.Configure(State.NewGame)
         .OnEntry(() => InitializeGame())
-        .InternalTransition(_playerSeatedTrigger, (player, t) => OnPlayerSeated(player))
-        .InternalTransition(_playerLeftTrigger, (player, t) => OnPlayerLeft(player))
         .Permit(Trigger.TableReady, State.HandInProgress);
 
       _gameStateMachine.Configure(State.HandInProgress)
-        .InternalTransition(_playerSeatedTrigger, (player, t) => OnPlayerSeated(player))
-        .InternalTransition(_playerLeftTrigger, (player, t) => OnPlayerLeft(player))
         .OnEntry(() => BeginGame())
         .Permit(Trigger.GameReady, State.PreFlop);
 
       _gameStateMachine.Configure(State.PreFlop)
         .SubstateOf(State.HandInProgress)
-        .InternalTransition(_betTrigger, (player, bet, t) => OnPlayerBet(player, bet))
-        .InternalTransition(_foldTrigger, (player, t) => OnPlayerFold(player))
         .Permit(Trigger.BettingComplete, State.Flop);
 
       _gameStateMachine.Configure(State.Flop)
         .SubstateOf(State.HandInProgress)
-        .InternalTransition(_betTrigger, (player, bet, t) => OnPlayerBet(player, bet))
-        .InternalTransition(_foldTrigger, (player, t) => OnPlayerFold(player))
         .Permit(Trigger.BettingComplete, State.Turn);
 
       _gameStateMachine.Configure(State.Turn)
         .SubstateOf(State.HandInProgress)
-        .InternalTransition(_betTrigger, (player, bet, t) => OnPlayerBet(player, bet))
-        .InternalTransition(_foldTrigger, (player, t) => OnPlayerFold(player))
         .Permit(Trigger.BettingComplete, State.River);
 
       _gameStateMachine.Configure(State.River)
         .SubstateOf(State.HandInProgress)
-        .InternalTransition(_betTrigger, (player, bet, t) => OnPlayerBet(player, bet))
-        .InternalTransition(_foldTrigger, (player, t) => OnPlayerFold(player))
         .Permit(Trigger.BettingComplete, State.HandComplete)
         .OnExit(t => Showdown());
 
@@ -94,6 +80,7 @@ namespace MultiPlayerPoker.Game
         .OnEntry(t => MoveButton())
         .Permit(Trigger.ReadyForNewHand, State.HandInProgress);
     }
+
 
     private void InitializeGame()
     {
@@ -105,24 +92,14 @@ namespace MultiPlayerPoker.Game
       _gameState.BeginGame();
     }
 
-    private void OnPlayerSeated(Player player)
+    private void OnTableReady(object sender, GameEventArgs args)
     {
-      _gameState.SeatPlayer(player);
+      _gameStateMachine.Fire(Trigger.TableReady);
     }
 
-    private void OnPlayerLeft(Player player)
+    private void OnBettingComplete(object sender, GameEventArgs e)
     {
-      _gameState.RemovePlayer(player);
-    }
-
-    private void OnPlayerBet(Player player, int bet)
-    {
-      _gameState.Bet(player, bet);
-    }
-
-    private void OnPlayerFold(Player player)
-    {
-      _gameState.Fold(player);
+      _gameStateMachine.Fire(Trigger.BettingComplete);
     }
 
     private void Showdown()
@@ -130,9 +107,5 @@ namespace MultiPlayerPoker.Game
       _gameState.Showdown();
     }
 
-    private void MoveButton()
-    {
-      throw new NotImplementedException();
-    }
   }
 }

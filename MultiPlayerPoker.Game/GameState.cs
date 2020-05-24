@@ -8,11 +8,8 @@ namespace MultiPlayerPoker.Game
 {
   public class GameState
   {
-    public List<Player> Players { get; set; }
-    public int MaxPlayers { get; set; }
+    public Table GameTable { get; set; }
     public int NextCardInDeck { get; set; }
-    public int MinBuyIn { get; set; }
-    public int MaxBuyIn { get; set; }
     public int BigBlind { get; set; }
     public int SmallBlind { get; set; }
     public int AmountToContinue { get; set; }
@@ -22,27 +19,16 @@ namespace MultiPlayerPoker.Game
     public Pot CurrentPot { get; set; }
 
     private readonly RecursiveHandEvaluator _handEvaluator;
-
-    public int ButtonIndex { get; set; }
-    public Player PlayerOnButton
-    {
-      get
-      {
-        return Players[ButtonIndex];
-      }
-    }
     
-    public Player PlayerToAct { get; set; }
-
     public GameState()
     {
       _handEvaluator = new RecursiveHandEvaluator();
 
       NextCardInDeck = 0;
-      MaxPlayers = 9;
 
-      Players = new List<Player>();
+      GameTable = new Table();
       CommunityCards = new Card[5];
+
       Pots = new List<Pot>();
     }
 
@@ -71,35 +57,6 @@ namespace MultiPlayerPoker.Game
       CardsInDeck = Deck.Shuffle(); 
     }
 
-    public void SeatPlayer(Player player)
-    {
-      if (Players.Count >= MaxPlayers)
-      {
-        throw new AddPlayerException($"This table seats a maximum of {MaxPlayers}.");
-      }
-
-      if (player.Bankroll < MinBuyIn)
-      {
-        throw new AddPlayerException($"This table requires a minimum buy-in of {MinBuyIn} and this player only has {player.Bankroll}.");
-      }
-
-      if (player.BuyIn < MinBuyIn)
-      {
-        throw new AddPlayerException($"This table requires a minimum buy-in of {MinBuyIn} and this player is only buying in for {player.BuyIn}.");
-      }
-
-      if (player.BuyIn > MaxBuyIn)
-      {
-        throw new AddPlayerException($"This table has a maximum buy-in of {MaxBuyIn} and this player is buying in for {player.BuyIn}.");
-      }
-
-      Players.Add(player);
-
-      player.Seat();
-
-      player.Bankroll -= player.BuyIn;
-      player.ChipStack = player.BuyIn;
-    }
 
     public void RemovePlayer(Player player)
     {
