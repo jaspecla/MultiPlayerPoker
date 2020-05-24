@@ -9,9 +9,11 @@ namespace MultiPlayerPoker.Game
   {
     public string Message { get; private set; }
     public Exception Exception { get; private set; }
-    public GameErrorEventArgs(string message, Exception exception = null)
+    public Player Player { get; private set; }
+    public GameErrorEventArgs(string message, Player player = null, Exception exception = null)
     {
       Message = message;
+      Player = player;
       Exception = exception;
     }
   }

@@ -48,6 +48,14 @@ namespace MultiPlayerPoker.Game
       }
     }
 
+    private void PublishGameError(EventHandler<GameErrorEventArgs> errorHandler, string message, Player player = null, Exception ex = null)
+    {
+      if (errorHandler != null)
+      {
+        errorHandler(this, new GameErrorEventArgs(message, player, ex));
+      }
+    }
+
     public void SendGameReady()
     {
       var handler = GameReady;
@@ -60,7 +68,7 @@ namespace MultiPlayerPoker.Game
       PublishGameEvent(handler);
     }
 
-    public void SendBettingComplete()
+    public void SendBettingCompleted()
     {
       var handler = BettingCompleted;
       PublishGameEvent(handler);
@@ -72,7 +80,7 @@ namespace MultiPlayerPoker.Game
       PublishGameEvent(handler);
     }
 
-    public void SeatPlayer(Player player)
+    public void SendTrySeatPlayer(Player player)
     {
       var handler = TrySeatPlayer;
       PublishGameEvent(handler, player);
@@ -84,34 +92,52 @@ namespace MultiPlayerPoker.Game
       PublishGameEvent(handler, player);
     }
 
+    public void SendFailSeatPlayer(Player player, string message)
+    {
+      var handler = FailSeatPlayer;
+      PublishGameError(handler, message, player);
+    }
+
     public void SendPlayerLeft(Player player)
     {
       var handler = PlayerLeft;
       PublishGameEvent(handler, player);
     }
 
-    public void SendPlayerSitOut(Player player)
+    public void SendTryPlayerBet(Player player, int amount)
     {
-      var handler = PlayerSatOut;
-      PublishGameEvent(handler, player);
-    }
-
-    public void SendPlayerSitIn(Player player)
-    {
-      var handler = PlayerSatIn;
-      PublishGameEvent(handler, player);
-    }
-
-    public void SendPlayerBet(Player player, int amount)
-    {
-      var handler = PlayerBet;
+      var handler = TryPlayerBet;
       PublishGameEvent(handler, player, amount);
     }
 
-    public void SendPlayerFold(Player player)
+    public void SendPlayerDidBet(Player player, int amount)
     {
-      var handler = PlayerFolded;
+      var handler = PlayerDidBet;
+      PublishGameEvent(handler, player, amount);
+    }
+
+    public void SendFailPlayerBet(string message, Player player)
+    {
+      var handler = FailPlayerBet;
+      PublishGameError(handler, message, player);
+    }
+
+    public void SendTryPlayerFold(Player player)
+    {
+      var handler = TryPlayerFold;
       PublishGameEvent(handler, player);
+    }
+
+    public void SendPlayerDidFold(Player player)
+    {
+      var handler = PlayerDidFold;
+      PublishGameEvent(handler, player);
+    }
+
+    public void SendFailPlayerFold(string message, Player player)
+    {
+      var handler = FailPlayerFold;
+      PublishGameError(handler, message, player);
     }
 
     public void SendPlayerWonMoney(Player player, int amount)
