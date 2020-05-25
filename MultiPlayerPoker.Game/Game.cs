@@ -6,7 +6,6 @@ using System;
 namespace MultiPlayerPoker.Game
 {
 
-
   public class Game
   {
     private enum State
@@ -33,9 +32,7 @@ namespace MultiPlayerPoker.Game
     };
 
     private readonly GameEventBroker _eventBroker;
-
     private readonly StateMachine<State, Trigger> _gameStateMachine;
-    private readonly GameState _gameState;
 
     private readonly StateMachine<State, Trigger>.TriggerWithParameters<Player> _playerSeatedTrigger;
     private readonly StateMachine<State, Trigger>.TriggerWithParameters<Player> _playerLeftTrigger;
@@ -45,14 +42,12 @@ namespace MultiPlayerPoker.Game
     public Game(GameEventBroker eventBroker)
     {
       _gameStateMachine = new StateMachine<State, Trigger>(State.NewGame);
-      _gameState = new GameState();
 
       _eventBroker = eventBroker;
       _eventBroker.TableReady += OnTableReady;
       _eventBroker.BettingCompleted += OnBettingComplete;
 
       _gameStateMachine.Configure(State.NewGame)
-        .OnEntry(() => InitializeGame())
         .Permit(Trigger.TableReady, State.HandInProgress);
 
       _gameStateMachine.Configure(State.HandInProgress)
@@ -77,19 +72,13 @@ namespace MultiPlayerPoker.Game
         .OnExit(t => Showdown());
 
       _gameStateMachine.Configure(State.HandComplete)
-        .OnEntry(t => MoveButton())
         .Permit(Trigger.ReadyForNewHand, State.HandInProgress);
     }
 
 
-    private void InitializeGame()
-    {
-      _gameState.InitializeGame();
-    }
-
     private void BeginGame()
     {
-      _gameState.BeginGame();
+      _eventBroker.SendGameReady();
     }
 
     private void OnTableReady(object sender, GameEventArgs args)
@@ -104,7 +93,7 @@ namespace MultiPlayerPoker.Game
 
     private void Showdown()
     {
-      _gameState.Showdown();
+      _eventBroker.SendShowdown();
     }
 
   }

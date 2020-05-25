@@ -7,11 +7,18 @@ namespace MultiPlayerPoker.Game
 {
   public class Pot
   {
-    public int Value { get; set; }
+    public int Value { get; private set; }
     public List<Player> EligiblePlayers { get; private set; }
+    public string PotType { get; private set; }
 
-    public Pot()
+    private readonly GameEventBroker _eventBroker;
+
+    public Pot(GameEventBroker eventBroker, string potType)
     {
+      _eventBroker = eventBroker;
+
+      PotType = potType;
+
       EligiblePlayers = new List<Player>();
     }
 
@@ -27,8 +34,14 @@ namespace MultiPlayerPoker.Game
       }
     }
 
-    public List<Player> GetWinners(Card[] communityCards)
+    public void AddValue(int value)
     {
+      Value += value;
+    }
+
+    public void Showdown(List<Card> communityCards)
+    {
+
       var results = new Dictionary<Player, HandEvaluatorResult>();
       var handEvaluator = new RecursiveHandEvaluator();
 
@@ -51,7 +64,7 @@ namespace MultiPlayerPoker.Game
       }
 
       Player winningPlayer = null;
-      List<Player> choppedPot = null;
+      List<Player> playersInPot = null;
       foreach (var player in playersInHand)
       {
         if (winningPlayer == null)
@@ -63,32 +76,31 @@ namespace MultiPlayerPoker.Game
         if (results[player] > results[winningPlayer])
         {
           winningPlayer = player;
-          choppedPot = null;
+          playersInPot = new List<Player> { winningPlayer };
         }
 
         else if (results[player] == results[winningPlayer])
         {
-          if (choppedPot == null)
+          if (playersInPot == null)
           {
-            choppedPot = new List<Player>();
-            choppedPot.Add(player);
-            choppedPot.Add(winningPlayer);
+            playersInPot = new List<Player>
+            {
+              player,
+              winningPlayer
+            };
           }
           else
           {
-            choppedPot.Add(player);
+            playersInPot.Add(player);
           }
         }
 
       }
 
-      if (choppedPot != null)
+      foreach (var player in playersInPot)
       {
-        return choppedPot;
-      }
-      else
-      {
-        return new List<Player> { winningPlayer };
+        _eventBroker.SendPlayerWonMoney(player, (Value / playersInPot.Count));
       }
     }
+  }
 }

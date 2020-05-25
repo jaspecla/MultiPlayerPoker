@@ -7,57 +7,105 @@ namespace MultiPlayerPoker.Game
 {
   public class GameActions
   {
-    public delegate void SeatPlayer(Player player);
-    public delegate void LeavePlayer(Player player);
-    public delegate void PausePlayer(Player player);
-    public delegate void UnpausePlayer(Player player);
-    public delegate void PlayerBet(Player player, int amount);
-    public delegate void PlayerFold(Player player);
-    public delegate void PlayerDealCard(Player player, Card card);
-    public delegate void DealCommunityCards(Card[] cards);
+    public delegate bool SeatPlayer(Player player);
+    public delegate bool LeavePlayer(Player player);
+    public delegate bool PausePlayer(Player player);
+    public delegate bool UnpausePlayer(Player player);
+    public delegate bool PlayerBet(Player player, int amount);
+    public delegate bool PlayerBlind(Player player, int amount, string blindType);
+    public delegate bool PlayerWonMoney(Player player, int amount, string potType);
+    public delegate bool PlayerFold(Player player);
+    public delegate bool PlayerDealCard(Player player, Card card);
+    public delegate bool DealCommunityCards(Card[] cards);
 
     public SeatPlayer TrySeatPlayerDelegate { get; set; }
     public LeavePlayer TryLeavePlayerDelegate { get; set; }
     public PausePlayer TryPausePlayerDelegate { get; set; }
     public UnpausePlayer TryUnpausePlayerDelegate { get; set; }
     public PlayerBet TryPlayerBetDelegate { get; set; }
+    public PlayerBlind TryPlayerBlindDelegate { get; set; }
     public PlayerFold TryPlayerFoldDelegate { get; set; }
     public PlayerDealCard TryPlayerDealCardDelegate { get; set; }
     public DealCommunityCards TryDealCommunityCardsDelgate { get; set; }
 
-    public void TrySeatPlayer(Player player)
+    public bool TrySeatPlayer(Player player)
     {
-      TrySeatPlayerDelegate?.Invoke(player);
+      if (TrySeatPlayerDelegate == null)
+      {
+        return false;
+      }
+
+      return TrySeatPlayerDelegate(player);
     }
 
-    public void TryLeavePlayer(Player player)
+    public bool TryLeavePlayer(Player player)
     {
-      TryLeavePlayerDelegate?.Invoke(player);
+      if (TryLeavePlayerDelegate == null)
+      {
+        return false;
+      }
+
+      return TryLeavePlayerDelegate(player);
     }
 
-    public void TryPausePlayer(Player player)
+    public bool TryPausePlayer(Player player)
     {
-      TryPausePlayerDelegate?.Invoke(player);
+      if (TryPausePlayerDelegate == null)
+      {
+        return false;
+      }
+
+      return TryPausePlayerDelegate(player);
     }
 
-    public void TryPlayerBet(Player player, int amount)
+    public bool TryPlayerBet(Player player, int amount)
     {
-      TryPlayerBetDelegate?.Invoke(player, amount);
+      if (TryPlayerBetDelegate == null)
+      {
+        return false;
+      }
+
+      return TryPlayerBetDelegate(player, amount);
     }
 
-    public void TryPlayerFold(Player player)
+    public bool TryPlayerBlind(Player player, int amount, string blindType)
     {
-      TryPlayerFoldDelegate?.Invoke(player);
+      if (TryPlayerBlindDelegate == null)
+      {
+        return false;
+      }
+
+      return TryPlayerBlindDelegate(player, amount, blindType);
     }
 
-    public void TryPlayerDealCard(Player player, Card card)
+    public bool TryPlayerFold(Player player)
     {
-      TryPlayerDealCardDelegate?.Invoke(player, card);
+      if (TryPlayerFoldDelegate == null)
+      {
+        return false;
+      }
+
+      return TryPlayerFoldDelegate(player);
     }
 
-    public void TryDealCommunityCards(Player player, Card[] cards)
+    public bool TryPlayerDealCard(Player player, Card card)
     {
-      TryDealCommunityCardsDelgate?.Invoke(cards);
+      if (TryPlayerDealCardDelegate == null)
+      {
+        return false;
+      }
+      
+      return TryPlayerDealCardDelegate(player, card);
+    }
+
+    public bool TryDealCommunityCards(Player player, Card[] cards)
+    {
+      if (TryDealCommunityCardsDelgate == null)
+      {
+        return false;
+      }
+
+      return TryDealCommunityCardsDelgate(cards);
     }
 
   }

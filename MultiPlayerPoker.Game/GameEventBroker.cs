@@ -26,18 +26,26 @@ namespace MultiPlayerPoker.Game
     public event EventHandler<GameEventArgs> PlayerDidBet;
     public event EventHandler<GameErrorEventArgs> FailPlayerBet;
 
+    public event EventHandler<GameEventArgs> PlayerDidBlind;
+    public event EventHandler<GameErrorEventArgs> FailPlayerBlind;
+
     public event EventHandler<GameEventArgs> PlayerDidFold;
     public event EventHandler<GameErrorEventArgs> FailPlayerFold;
 
     public event EventHandler<GameEventArgs> ActionOnPlayer;
     public event EventHandler<GameEventArgs> BettingCompleted;
+    public event EventHandler<GameEventArgs> Showdown;
     public event EventHandler<GameEventArgs> ReadyForNewHand;
     public event EventHandler<GameEventArgs> PlayerWonMoney;
     
     public event EventHandler<GameEventArgs> PlayerCardDealt;
     public event EventHandler<GameEventArgs> CommunityCardsDealt;
 
-    private void PublishGameEvent(EventHandler<GameEventArgs> handler, Player player = null, int amount = 0, Card[] cards = null)
+    private void PublishGameEvent(
+      EventHandler<GameEventArgs> handler, 
+      Player player = null, 
+      int amount = 0, 
+      Card[] cards = null)
     {
       if (handler != null)
       {
@@ -74,6 +82,12 @@ namespace MultiPlayerPoker.Game
     public void SendBettingCompleted()
     {
       var handler = BettingCompleted;
+      PublishGameEvent(handler);
+    }
+
+    public void SendShowdown()
+    {
+      var handler = Showdown;
       PublishGameEvent(handler);
     }
 
@@ -137,10 +151,22 @@ namespace MultiPlayerPoker.Game
       PublishGameEvent(handler, player, amount);
     }
 
-    public void SendFailPlayerBet(string message, Player player)
+    public void SendFailPlayerBet(string message, Player player, Exception ex = null)
     {
       var handler = FailPlayerBet;
-      PublishGameError(handler, message, player);
+      PublishGameError(handler, message, player, ex);
+    }
+
+    public void SendPlayerDidBlind(Player player, int amount)
+    {
+      var handler = PlayerDidBlind;
+      PublishGameEvent(handler, player, amount);
+    }
+
+    public void SendFailPlayerBlind(string message, Player player, Exception ex = null)
+    {
+      var handler = FailPlayerBlind;
+      PublishGameError(handler, message, player, ex);
     }
 
     public void SendPlayerDidFold(Player player)
@@ -174,6 +200,4 @@ namespace MultiPlayerPoker.Game
     }
 
   }
-
-
 }
