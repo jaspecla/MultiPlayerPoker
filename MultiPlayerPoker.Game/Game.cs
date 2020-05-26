@@ -6,7 +6,7 @@ using System;
 namespace MultiPlayerPoker.Game
 {
 
-  public class Game
+  internal class Game
   {
     private enum State
     {
@@ -34,16 +34,11 @@ namespace MultiPlayerPoker.Game
     private readonly GameEventBroker _eventBroker;
     private readonly StateMachine<State, Trigger> _gameStateMachine;
 
-    private readonly StateMachine<State, Trigger>.TriggerWithParameters<Player> _playerSeatedTrigger;
-    private readonly StateMachine<State, Trigger>.TriggerWithParameters<Player> _playerLeftTrigger;
-    private readonly StateMachine<State, Trigger>.TriggerWithParameters<Player, int> _betTrigger;
-    private readonly StateMachine<State, Trigger>.TriggerWithParameters<Player> _foldTrigger;
-
-    public Game(GameEventBroker eventBroker)
+    internal Game(GameProperties properties)
     {
       _gameStateMachine = new StateMachine<State, Trigger>(State.NewGame);
 
-      _eventBroker = eventBroker;
+      _eventBroker = properties.EventBroker;
       _eventBroker.TableReady += OnTableReady;
       _eventBroker.BettingCompleted += OnBettingComplete;
 
@@ -55,18 +50,22 @@ namespace MultiPlayerPoker.Game
         .Permit(Trigger.GameReady, State.PreFlop);
 
       _gameStateMachine.Configure(State.PreFlop)
+        .OnEntry(() => PreFlopReady())
         .SubstateOf(State.HandInProgress)
         .Permit(Trigger.BettingComplete, State.Flop);
 
       _gameStateMachine.Configure(State.Flop)
+        .OnEntry(() => FlopReady())
         .SubstateOf(State.HandInProgress)
         .Permit(Trigger.BettingComplete, State.Turn);
 
       _gameStateMachine.Configure(State.Turn)
+        .OnEntry(() => TurnReady())
         .SubstateOf(State.HandInProgress)
         .Permit(Trigger.BettingComplete, State.River);
 
       _gameStateMachine.Configure(State.River)
+        .OnEntry(() => RiverReady())
         .SubstateOf(State.HandInProgress)
         .Permit(Trigger.BettingComplete, State.HandComplete)
         .OnExit(t => Showdown());
@@ -75,15 +74,35 @@ namespace MultiPlayerPoker.Game
         .Permit(Trigger.ReadyForNewHand, State.HandInProgress);
     }
 
-
     private void BeginGame()
     {
       _eventBroker.SendGameReady();
     }
 
+
     private void OnTableReady(object sender, GameEventArgs args)
     {
       _gameStateMachine.Fire(Trigger.TableReady);
+    }
+
+    private void PreFlopReady()
+    {
+      _eventBroker.SendPreFlopReady();
+    }
+
+    private void FlopReady()
+    {
+      _eventBroker.SendFlopReady();
+    }
+
+    private void TurnReady()
+    {
+      _eventBroker.SendTurnReady();
+    }
+
+    private void RiverReady()
+    {
+      _eventBroker.SendRiverReady();
     }
 
     private void OnBettingComplete(object sender, GameEventArgs e)

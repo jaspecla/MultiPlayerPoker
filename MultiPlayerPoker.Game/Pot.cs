@@ -5,15 +5,15 @@ using System.Text;
 
 namespace MultiPlayerPoker.Game
 {
-  public class Pot
+  internal class Pot
   {
-    public int Value { get; private set; }
-    public List<Player> EligiblePlayers { get; private set; }
-    public string PotType { get; private set; }
+    internal int Value { get; private set; }
+    internal List<Player> EligiblePlayers { get; private set; }
+    internal string PotType { get; private set; }
 
     private readonly GameEventBroker _eventBroker;
 
-    public Pot(GameEventBroker eventBroker, string potType)
+    internal Pot(GameEventBroker eventBroker, string potType)
     {
       _eventBroker = eventBroker;
 
@@ -22,7 +22,7 @@ namespace MultiPlayerPoker.Game
       EligiblePlayers = new List<Player>();
     }
 
-    public void Initialize(List<Player> players)
+    internal void Initialize(List<Player> players)
     {
       Value = 0;
       foreach (var player in players)
@@ -34,12 +34,12 @@ namespace MultiPlayerPoker.Game
       }
     }
 
-    public void AddValue(int value)
+    internal void AddValue(int value)
     {
       Value += value;
     }
 
-    public void Showdown(List<Card> communityCards)
+    internal void Showdown(List<Card> communityCards)
     {
 
       var results = new Dictionary<Player, HandEvaluatorResult>();

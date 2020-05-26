@@ -165,5 +165,10 @@ namespace MultiPlayerPoker.Game
     {
       return !_playerStateMachine.IsInState(State.NotInGame);
     }
+
+    public override string ToString()
+    {
+      return $"{DisplayName} ({Id})";
+    }
   }
 }

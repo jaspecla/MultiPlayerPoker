@@ -5,107 +5,115 @@ using System.Text;
 
 namespace MultiPlayerPoker.Game
 {
-  public class GameActions
+  internal class GameActions
   {
-    public delegate bool SeatPlayer(Player player);
-    public delegate bool LeavePlayer(Player player);
-    public delegate bool PausePlayer(Player player);
-    public delegate bool UnpausePlayer(Player player);
-    public delegate bool PlayerBet(Player player, int amount);
-    public delegate bool PlayerBlind(Player player, int amount, string blindType);
-    public delegate bool PlayerWonMoney(Player player, int amount, string potType);
-    public delegate bool PlayerFold(Player player);
-    public delegate bool PlayerDealCard(Player player, Card card);
-    public delegate bool DealCommunityCards(Card[] cards);
+    internal List<IGameLogOutput> LogOutputs { get; private set; }
 
-    public SeatPlayer TrySeatPlayerDelegate { get; set; }
-    public LeavePlayer TryLeavePlayerDelegate { get; set; }
-    public PausePlayer TryPausePlayerDelegate { get; set; }
-    public UnpausePlayer TryUnpausePlayerDelegate { get; set; }
-    public PlayerBet TryPlayerBetDelegate { get; set; }
-    public PlayerBlind TryPlayerBlindDelegate { get; set; }
-    public PlayerFold TryPlayerFoldDelegate { get; set; }
-    public PlayerDealCard TryPlayerDealCardDelegate { get; set; }
-    public DealCommunityCards TryDealCommunityCardsDelgate { get; set; }
+    internal delegate bool SeatPlayer(Player player);
+    internal delegate bool LeavePlayer(Player player);
+    internal delegate bool PausePlayer(Player player);
+    internal delegate bool UnpausePlayer(Player player);
+    internal delegate bool PlayerBet(Player player, int amount);
+    internal delegate bool PlayerBlind(Player player, int amount, string blindType);
+    internal delegate bool PlayerFold(Player player);
 
-    public bool TrySeatPlayer(Player player)
+    internal SeatPlayer TrySeatPlayerDelegate { get; set; }
+    internal LeavePlayer TryLeavePlayerDelegate { get; set; }
+    internal PausePlayer TryPausePlayerDelegate { get; set; }
+    internal UnpausePlayer TryUnpausePlayerDelegate { get; set; }
+    internal PlayerBet TryPlayerBetDelegate { get; set; }
+    internal PlayerBlind TryPlayerBlindDelegate { get; set; }
+    internal PlayerFold TryPlayerFoldDelegate { get; set; }
+
+    internal GameActions()
+    {
+      LogOutputs = new List<IGameLogOutput>();
+    }
+
+    private void SendLogOutput(string message)
+    {
+      foreach (var output in LogOutputs)
+      {
+        output.Log(message);
+      }
+    }
+
+    internal bool TrySeatPlayer(Player player)
     {
       if (TrySeatPlayerDelegate == null)
       {
         return false;
       }
 
+      SendLogOutput($"Trying to seat player {player}.");
       return TrySeatPlayerDelegate(player);
     }
 
-    public bool TryLeavePlayer(Player player)
+    internal bool TryLeavePlayer(Player player)
     {
       if (TryLeavePlayerDelegate == null)
       {
         return false;
       }
 
+      SendLogOutput($"Trying to remove player {player} from the table.");
       return TryLeavePlayerDelegate(player);
     }
 
-    public bool TryPausePlayer(Player player)
+    internal bool TryPausePlayer(Player player)
     {
       if (TryPausePlayerDelegate == null)
       {
         return false;
       }
 
+      SendLogOutput($"Trying to sit out player {player}.");
       return TryPausePlayerDelegate(player);
     }
 
-    public bool TryPlayerBet(Player player, int amount)
+    internal bool TryUnpausePlayer(Player player)
+    {
+      if (TryUnpausePlayerDelegate == null)
+      {
+        return false;
+      }
+
+      SendLogOutput($"Trying to return player {player}.");
+      return TryUnpausePlayerDelegate(player);
+    }
+
+
+    internal bool TryPlayerBet(Player player, int amount)
     {
       if (TryPlayerBetDelegate == null)
       {
         return false;
       }
 
+      SendLogOutput($"Player {player} is trying to bet {amount}.");
       return TryPlayerBetDelegate(player, amount);
     }
 
-    public bool TryPlayerBlind(Player player, int amount, string blindType)
+    internal bool TryPlayerBlind(Player player, int amount, string blindType)
     {
       if (TryPlayerBlindDelegate == null)
       {
         return false;
       }
 
+      SendLogOutput($"Player {player} is trying to blind-bet the {blindType} blind for {amount}.");
       return TryPlayerBlindDelegate(player, amount, blindType);
     }
 
-    public bool TryPlayerFold(Player player)
+    internal bool TryPlayerFold(Player player)
     {
       if (TryPlayerFoldDelegate == null)
       {
         return false;
       }
 
+      SendLogOutput($"Player {player} is tryig to fold.");
       return TryPlayerFoldDelegate(player);
-    }
-
-    public bool TryPlayerDealCard(Player player, Card card)
-    {
-      if (TryPlayerDealCardDelegate == null)
-      {
-        return false;
-      }
-      
-      return TryPlayerDealCardDelegate(player, card);
-    }
-
-    public bool TryDealCommunityCards(Player player, Card[] cards)
-    {
-      if (TryDealCommunityCardsDelgate == null)
-      {
-        return false;
-      }
-
-      return TryDealCommunityCardsDelgate(cards);
     }
 
   }

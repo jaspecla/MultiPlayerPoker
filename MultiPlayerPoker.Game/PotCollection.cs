@@ -5,15 +5,15 @@ using System.Text;
 
 namespace MultiPlayerPoker.Game
 {
-  public class PotCollection
+  internal class PotCollection
   {
-    public Pot CurrentPot;
+    internal Pot CurrentPot;
 
     private readonly GameEventBroker _eventBroker;
     private List<Card> _communityCards;
     private List<Pot> _pots;
 
-    public PotCollection(List<Player> eligiblePlayers, GameEventBroker eventBroker)
+    internal PotCollection(List<Player> eligiblePlayers, GameEventBroker eventBroker)
     {
       _eventBroker = eventBroker;
 
@@ -27,7 +27,7 @@ namespace MultiPlayerPoker.Game
       CurrentPot = mainPot;
     }
 
-    public void CreateSidePot(List<Player> eligiblePlayers)
+    internal void CreateSidePot(List<Player> eligiblePlayers)
     {
       var sidePot = CreatePot("side", eligiblePlayers);
       _pots.Add(sidePot);

@@ -6,40 +6,52 @@ using System.Text;
 
 namespace MultiPlayerPoker.Game
 {
-  public class GameEventBroker
+  internal class GameEventBroker
   {
-    public event EventHandler<GameEventArgs> GameReady;
-    public event EventHandler<GameEventArgs> TableReady;
+    internal List<IGameLogOutput> LogOutputs { get; private set; }
 
-    public event EventHandler<GameEventArgs> PlayerWasSeated;
-    public event EventHandler<GameErrorEventArgs> FailSeatPlayer;
-    
-    public event EventHandler<GameEventArgs> PlayerLeft;
-    public event EventHandler<GameErrorEventArgs> FailPlayerLeft;
+    internal event EventHandler<GameEventArgs> GameReady;
+    internal event EventHandler<GameEventArgs> TableReady;
 
-    public event EventHandler<GameEventArgs> PlayerWasPaused;
-    public event EventHandler<GameErrorEventArgs> FailPausePlayer;
+    internal event EventHandler<GameEventArgs> PreFlopReady;
+    internal event EventHandler<GameEventArgs> FlopReady;
+    internal event EventHandler<GameEventArgs> TurnReady;
+    internal event EventHandler<GameEventArgs> RiverReady;
 
-    public event EventHandler<GameEventArgs> PlayerWasUnpaused;
-    public event EventHandler<GameErrorEventArgs> FailUnpausePlayer;
+    internal event EventHandler<GameEventArgs> PlayerWasSeated;
+    internal event EventHandler<GameErrorEventArgs> FailSeatPlayer;
 
-    public event EventHandler<GameEventArgs> PlayerDidBet;
-    public event EventHandler<GameErrorEventArgs> FailPlayerBet;
+    internal event EventHandler<GameEventArgs> PlayerLeft;
+    internal event EventHandler<GameErrorEventArgs> FailPlayerLeft;
 
-    public event EventHandler<GameEventArgs> PlayerDidBlind;
-    public event EventHandler<GameErrorEventArgs> FailPlayerBlind;
+    internal event EventHandler<GameEventArgs> PlayerWasPaused;
+    internal event EventHandler<GameErrorEventArgs> FailPausePlayer;
 
-    public event EventHandler<GameEventArgs> PlayerDidFold;
-    public event EventHandler<GameErrorEventArgs> FailPlayerFold;
+    internal event EventHandler<GameEventArgs> PlayerWasUnpaused;
+    internal event EventHandler<GameErrorEventArgs> FailUnpausePlayer;
 
-    public event EventHandler<GameEventArgs> ActionOnPlayer;
-    public event EventHandler<GameEventArgs> BettingCompleted;
-    public event EventHandler<GameEventArgs> Showdown;
-    public event EventHandler<GameEventArgs> ReadyForNewHand;
-    public event EventHandler<GameEventArgs> PlayerWonMoney;
-    
-    public event EventHandler<GameEventArgs> PlayerCardDealt;
-    public event EventHandler<GameEventArgs> CommunityCardsDealt;
+    internal event EventHandler<GameEventArgs> PlayerDidBet;
+    internal event EventHandler<GameErrorEventArgs> FailPlayerBet;
+
+    internal event EventHandler<GameEventArgs> PlayerDidBlind;
+    internal event EventHandler<GameErrorEventArgs> FailPlayerBlind;
+
+    internal event EventHandler<GameEventArgs> PlayerDidFold;
+    internal event EventHandler<GameErrorEventArgs> FailPlayerFold;
+
+    internal event EventHandler<GameEventArgs> ActionOnPlayer;
+    internal event EventHandler<GameEventArgs> BettingCompleted;
+    internal event EventHandler<GameEventArgs> Showdown;
+    internal event EventHandler<GameEventArgs> ReadyForNewHand;
+    internal event EventHandler<GameEventArgs> PlayerWonMoney;
+
+    internal event EventHandler<GameEventArgs> PlayerCardDealt;
+    internal event EventHandler<GameEventArgs> CommunityCardsDealt;
+
+    internal GameEventBroker()
+    {
+      LogOutputs = new List<IGameLogOutput>();
+    }
 
     private void PublishGameEvent(
       EventHandler<GameEventArgs> handler, 
@@ -61,142 +73,208 @@ namespace MultiPlayerPoker.Game
       }
     }
 
-    public void SendGameReady()
+    private void SendLogOutput(string message)
+    {
+      foreach (var output in LogOutputs)
+      {
+        output.Log(message);
+      }
+    }
+
+    internal void SendGameReady()
     {
       var handler = GameReady;
       PublishGameEvent(handler);
+      SendLogOutput($"Game is ready.");
     }
 
-    public void SendTableReady()
+    internal void SendTableReady()
     {
       var handler = TableReady;
       PublishGameEvent(handler);
+      SendLogOutput($"Table is ready.");
     }
 
-    public void SendActionOnPlayer(Player player)
+    internal void SendPreFlopReady()
+    {
+      var handler = PreFlopReady;
+      PublishGameEvent(handler);
+      SendLogOutput($"Pre-flop is ready.");
+    }
+
+    internal void SendFlopReady()
+    {
+      var handler = FlopReady;
+      PublishGameEvent(handler);
+      SendLogOutput($"Flop is ready.");
+    }
+
+    internal void SendTurnReady()
+    {
+      var handler = TurnReady;
+      PublishGameEvent(handler);
+      SendLogOutput($"Turn is ready.");
+    }
+
+    internal void SendRiverReady()
+    {
+      var handler = RiverReady;
+      PublishGameEvent(handler);
+      SendLogOutput($"River is ready.");
+    }
+
+    internal void SendActionOnPlayer(Player player)
     {
       var handler = ActionOnPlayer;
       PublishGameEvent(handler, player);
+      SendLogOutput($"Action is on player {player}.");
     }
 
-    public void SendBettingCompleted()
+    internal void SendBettingCompleted()
     {
       var handler = BettingCompleted;
       PublishGameEvent(handler);
+      SendLogOutput($"Betting is complete for current round.");
     }
 
-    public void SendShowdown()
+    internal void SendShowdown()
     {
       var handler = Showdown;
       PublishGameEvent(handler);
+      SendLogOutput($"Showdown for this round.");
     }
 
-    public void SendReadyForNewHand()
+    internal void SendReadyForNewHand()
     {
       var handler = ReadyForNewHand;
       PublishGameEvent(handler);
+      SendLogOutput($"Ready for new hand.");
     }
 
-    public void SendPlayerWasSeated(Player player)
+    internal void SendPlayerWasSeated(Player player)
     {
       var handler = PlayerWasSeated;
       PublishGameEvent(handler, player);
+      SendLogOutput($"Player {player} was seated.");
     }
 
-    public void SendFailSeatPlayer(string message, Player player, Exception ex = null)
+    internal void SendFailSeatPlayer(string message, Player player, Exception ex = null)
     {
       var handler = FailSeatPlayer;
       PublishGameError(handler, message, player, ex);
+      SendLogOutput($"Failed to seat player {player}: {message}");
     }
 
-    public void SendPlayerLeft(Player player)
+    internal void SendPlayerLeft(Player player)
     {
       var handler = PlayerLeft;
       PublishGameEvent(handler, player);
+      SendLogOutput($"Player {player} has left the game.");
     }
 
-    public void SendFailPlayerLeft(string message, Player player, Exception ex = null)
+    internal void SendFailPlayerLeft(string message, Player player, Exception ex = null)
     {
       var handler = FailPlayerLeft;
       PublishGameError(handler, message, player, ex);
+      SendLogOutput($"Could not remove player {player} from game: {message}");
     }
 
-    public void SendPlayerWasPaused(Player player)
+    internal void SendPlayerWasPaused(Player player)
     {
       var handler = PlayerWasPaused;
       PublishGameEvent(handler, player);
+      SendLogOutput($"Player {player} has sat out of the game.");
     }
 
-    public void SendFailPausePlayer(string message, Player player, Exception ex = null)
+    internal void SendFailPausePlayer(string message, Player player, Exception ex = null)
     {
       var handler = FailPausePlayer;
       PublishGameError(handler, message, player, ex);
+      SendLogOutput($"Could not sit out player {player}: {message}.");
     }
 
-    public void SendPlayerWasUnpaused(Player player)
+    internal void SendPlayerWasUnpaused(Player player)
     {
       var handler = PlayerWasUnpaused;
       PublishGameEvent(handler, player);
+      SendLogOutput($"Player {player} has returned to their game.");
     }
 
-    public void SendFailUnpausePlayer(string message, Player player, Exception ex = null)
+    internal void SendFailUnpausePlayer(string message, Player player, Exception ex = null)
     {
       var handler = FailUnpausePlayer;
       PublishGameError(handler, message, player, ex);
+      SendLogOutput($"Could not return player {player} to their game: {message}.");
     }
 
-    public void SendPlayerDidBet(Player player, int amount)
+    internal void SendPlayerDidBet(Player player, int amount)
     {
       var handler = PlayerDidBet;
       PublishGameEvent(handler, player, amount);
+      SendLogOutput($"Player {player} bet {amount}.");
     }
 
-    public void SendFailPlayerBet(string message, Player player, Exception ex = null)
+    internal void SendFailPlayerBet(string message, Player player, Exception ex = null)
     {
       var handler = FailPlayerBet;
       PublishGameError(handler, message, player, ex);
+      SendLogOutput($"Player {player} could not bet: {message}.");
     }
 
-    public void SendPlayerDidBlind(Player player, int amount)
+    internal void SendPlayerDidBlind(Player player, int amount)
     {
       var handler = PlayerDidBlind;
       PublishGameEvent(handler, player, amount);
+      SendLogOutput($"Player {player} blind bet {amount}.");
     }
 
-    public void SendFailPlayerBlind(string message, Player player, Exception ex = null)
+    internal void SendFailPlayerBlind(string message, Player player, Exception ex = null)
     {
       var handler = FailPlayerBlind;
       PublishGameError(handler, message, player, ex);
+      SendLogOutput($"Player {player} could not blind bet: {message}");
     }
 
-    public void SendPlayerDidFold(Player player)
+    internal void SendPlayerDidFold(Player player)
     {
       var handler = PlayerDidFold;
       PublishGameEvent(handler, player);
+      SendLogOutput($"Player {player} folded.");
     }
 
-    public void SendFailPlayerFold(string message, Player player)
+    internal void SendFailPlayerFold(string message, Player player)
     {
       var handler = FailPlayerFold;
       PublishGameError(handler, message, player);
+      SendLogOutput($"Player {player} could not fold: {message}.");
     }
 
-    public void SendPlayerWonMoney(Player player, int amount)
+    internal void SendPlayerWonMoney(Player player, int amount)
     {
       var handler = PlayerWonMoney;
       PublishGameEvent(handler, player, amount);
+      SendLogOutput($"Player {player} won {amount}.");
     }
 
-    public void SendPlayerCardDelt(Player player, Card card)
+    internal void SendPlayerCardDelt(Player player, Card card)
     {
       var handler = PlayerCardDealt;
       PublishGameEvent(handler, player, cards: new Card[] { card });
+      SendLogOutput($"Player {player} was dealt {card}.");
     }
 
-    public void SendCommunityCardsDealt(Player player, Card[] cards)
+    internal void SendCommunityCardsDealt(Card[] cards)
     {
       var handler = CommunityCardsDealt;
-      PublishGameEvent(handler, player, cards: cards);
+      PublishGameEvent(handler, player: null, cards: cards);
+      
+      StringBuilder message = new StringBuilder("Community cards were dealt: ");
+      foreach (var card in cards)
+      {
+        message.Append($"{card} ");
+      }
+
+      SendLogOutput(message.ToString());
     }
 
   }

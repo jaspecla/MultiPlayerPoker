@@ -6,13 +6,13 @@ using System.Text;
 
 namespace MultiPlayerPoker.Game
 {
-  public class GameEventArgs : EventArgs
+  internal class GameEventArgs : EventArgs
   {
-    public Player Player { get; private set; }
-    public int Amount { get; private set; }
-    public Card[] Cards { get; private set; }
+    internal Player Player { get; private set; }
+    internal int Amount { get; private set; }
+    internal Card[] Cards { get; private set; }
     
-    public GameEventArgs(Player player = null, int amount = 0, Card[] cards = null)
+    internal GameEventArgs(Player player = null, int amount = 0, Card[] cards = null)
     {
       Player = player;
       Amount = amount;

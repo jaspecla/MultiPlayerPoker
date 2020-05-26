@@ -12,12 +12,12 @@ namespace MultiPlayerPoker.Game
     private LinkedListNode<Player> _currentActivePlayer;
     private LinkedListNode<Player> _playerOnButton;
 
-   public int AmountToGo { get; set; }
+   internal int AmountToGo { get; set; }
 
     private readonly GameEventBroker _eventBroker;
     private readonly GameActions _actions;
 
-    public Player CurrentActivePlayer
+    internal Player CurrentActivePlayer
     {
       get
       {
@@ -25,7 +25,7 @@ namespace MultiPlayerPoker.Game
       }
     }
 
-    public Player PlayerOnButton
+    internal Player PlayerOnButton
     {
       get
       {
@@ -33,11 +33,11 @@ namespace MultiPlayerPoker.Game
       }
     }
 
-    public PlayerCollection(GameEventBroker eventBroker, GameActions actions)
+    internal PlayerCollection(GameProperties properties)
     {
       _players = new LinkedList<Player>();
 
-      _eventBroker = eventBroker;
+      _eventBroker = properties.EventBroker;
       _eventBroker.PlayerWasSeated += OnPlayerSeated;
       _eventBroker.PlayerLeft += OnPlayerLeft;
       _eventBroker.ActionOnPlayer += OnActionOnPlayer;
@@ -46,7 +46,7 @@ namespace MultiPlayerPoker.Game
       _eventBroker.PlayerDidBet += OnPlayerAddedMoney;
       _eventBroker.PlayerDidBlind += OnPlayerAddedMoney;
 
-      _actions = actions;
+      _actions = properties.Actions;
 
       _actions.TryPausePlayerDelegate += OnTryPausePlayer;
       _actions.TryUnpausePlayerDelegate += OnTryUnpausePlayer;
@@ -56,7 +56,7 @@ namespace MultiPlayerPoker.Game
 
     }
 
-    public void SeatPlayer(Player player)
+    internal void SeatPlayer(Player player)
     {
       _players.AddLast(player);
       if (_players.Count == 1)
@@ -260,12 +260,12 @@ namespace MultiPlayerPoker.Game
     }
 
 
-    public void RemovePlayer(Player player)
+    internal void RemovePlayer(Player player)
     {
       _players.Remove(player);
     }
 
-    public void RemovePlayersNotInGame()
+    internal void RemovePlayersNotInGame()
     {
       // Clean out any players who have left
       foreach (var player in _players)
@@ -278,14 +278,14 @@ namespace MultiPlayerPoker.Game
 
     }
 
-    public void MoveButton()
+    internal void MoveButton()
     {
       _currentActivePlayer = _playerOnButton;
       NextActivePlayer();
       _playerOnButton = _currentActivePlayer;
     }
 
-    public void NextActivePlayer()
+    internal void NextActivePlayer()
     {
       LinkedListNode<Player> nextActivePlayer = null;
       var current = _currentActivePlayer.Next;

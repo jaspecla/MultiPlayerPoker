@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MultiPlayerPoker.Cards;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,35 +7,36 @@ using System.Threading;
 
 namespace MultiPlayerPoker.Game
 {
-  public class Table
+  internal class Table
   {
+    internal PlayerCollection Players { get; private set; }
+    internal PotCollection Pots { get; private set; }
 
-    public PlayerCollection Players { get; private set; }
-    public PotCollection Pots { get; private set; }
-
-    public int MaxPlayers { get; private set; }
-    public int MinBuyIn { get; private set; }
-    public int MaxBuyIn { get; private set; }
-    public int BigBlind { get; private set; }
-    public int SmallBlind { get; private set; }
-
+    private GameProperties _properties;
     private GameEventBroker _eventBroker;
-    private GameActions _actions { get; set; }
+    private GameActions _actions;
 
-    public Table(GameEventBroker eventBroker, GameActions actions, int maxPlayers, int minBuyIn, int maxBuyIn)
+    private Dealer _dealer;
+
+    internal Table(GameProperties properties)
     {
-      _eventBroker = eventBroker;
+      _properties = properties;
+
+      _eventBroker = properties.EventBroker;
       _eventBroker.GameReady += OnGameReady;
+      _eventBroker.PreFlopReady += OnPreFlopReady;
+      _eventBroker.FlopReady += OnFlopReady;
+      _eventBroker.TurnReady += OnTurnOrRiverReady;
+      _eventBroker.RiverReady += OnTurnOrRiverReady;
       _eventBroker.PlayerDidBet += OnPlayerBet;
       _eventBroker.PlayerDidFold += OnPlayerFold;
 
-      _actions = actions;
+      _actions = properties.Actions;
       _actions.TrySeatPlayerDelegate += OnTrySeatPlayer;
       _actions.TryLeavePlayerDelegate += OnTryLeavePlayer;
 
-      MaxPlayers = maxPlayers;
-      MinBuyIn = minBuyIn;
-      MaxBuyIn = maxBuyIn;
+      Players = new PlayerCollection(properties);
+      _dealer = new Dealer();
     }
 
     private void OnGameReady(object sender, GameEventArgs args)
@@ -51,39 +53,69 @@ namespace MultiPlayerPoker.Game
       // Get blinds
       // TODO: What if they don't have enough to make blinds?
       Players.NextActivePlayer();
-      _actions.TryPlayerBlind(Players.CurrentActivePlayer, SmallBlind, "small");
+      _actions.TryPlayerBlind(Players.CurrentActivePlayer, _properties.SmallBlind, "small");
 
       Players.NextActivePlayer();
-      _actions.TryPlayerBlind(Players.CurrentActivePlayer, BigBlind, "big");
+      _actions.TryPlayerBlind(Players.CurrentActivePlayer, _properties.BigBlind, "big");
 
       Players.NextActivePlayer();
       _eventBroker.SendActionOnPlayer(Players.CurrentActivePlayer);
+
       
+    }
+
+    private void OnPreFlopReady(object sender, GameEventArgs args)
+    {
+      // Deal the cards
+      _dealer.Shuffle();
+
+      foreach (var player in Players)
+      {
+        _eventBroker.SendPlayerCardDelt(player, _dealer.NextCard());
+      }
+    }
+
+    private void OnFlopReady(object sender, GameEventArgs args)
+    {
+      Card[] flop = new Card[3];
+      flop[0] = _dealer.NextCard();
+      flop[1] = _dealer.NextCard();
+      flop[2] = _dealer.NextCard();
+
+      _eventBroker.SendCommunityCardsDealt(flop);
+    }
+
+    private void OnTurnOrRiverReady(object sender, GameEventArgs args)
+    {
+      Card[] cards = new Card[1];
+      cards[0] = _dealer.NextCard();
+
+      _eventBroker.SendCommunityCardsDealt(cards);
     }
 
     private bool OnTrySeatPlayer(Player player)
     {
-      if (Players.Count() >= MaxPlayers)
+      if (Players.Count() >= _properties.MaxPlayers)
       {
-        _eventBroker.SendFailSeatPlayer($"This table seats a maximum of {MaxPlayers}.", player);
+        _eventBroker.SendFailSeatPlayer($"This table seats a maximum of {_properties.MaxPlayers}.", player);
         return false;
       }
 
-      if (player.Bankroll < MinBuyIn)
+      if (player.Bankroll < _properties.MinBuyIn)
       {
-        _eventBroker.SendFailSeatPlayer($"This table requires a minimum buy-in of {MinBuyIn} and this player only has {player.Bankroll}.", player);
+        _eventBroker.SendFailSeatPlayer($"This table requires a minimum buy-in of {_properties.MinBuyIn} and this player only has {player.Bankroll}.", player);
         return false;
       }
 
-      if (player.BuyIn < MinBuyIn)
+      if (player.BuyIn < _properties.MinBuyIn)
       {
-        _eventBroker.SendFailSeatPlayer($"This table requires a minimum buy-in of {MinBuyIn} and this player is only buying in for {player.BuyIn}.", player);
+        _eventBroker.SendFailSeatPlayer($"This table requires a minimum buy-in of {_properties.MinBuyIn} and this player is only buying in for {player.BuyIn}.", player);
         return false;
       }
 
-      if (player.BuyIn > MaxBuyIn)
+      if (player.BuyIn > _properties.MaxBuyIn)
       {
-        _eventBroker.SendFailSeatPlayer($"This table has a maximum buy-in of {MaxBuyIn} and this player is buying in for {player.BuyIn}.", player);
+        _eventBroker.SendFailSeatPlayer($"This table has a maximum buy-in of {_properties.MaxBuyIn} and this player is buying in for {player.BuyIn}.", player);
         return false;
       }
 
